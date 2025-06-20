@@ -22,20 +22,21 @@ public class ExpoTwoWayAudioModule: Module {
 
         }
 
-        AsyncFunction("initialize") { () -> Bool in
+        AsyncFunction("initialize") { (sampleRate: Double, promise: Promise) in
             do {
                 if self.audioEngine != nil {
-                    return true
+                    promise.resolve(true)
+                    return
                 }
-                self.audioEngine = try AudioEngine()
+                self.audioEngine = try AudioEngine(sampleRate: sampleRate)
                 self.setupMicrophoneCallback()
                 self.setupInputAudioLevelCallback()
                 self.setupOutputAudioLevelCallback()
                 self.setupAudioInterruptionCallback()
-                return true
+                promise.resolve(true)
             } catch {
                 print("Failed to initialize AudioEngine: \(error)")
-                return false
+                promise.resolve(false)
             }
         }
 
@@ -106,8 +107,11 @@ public class ExpoTwoWayAudioModule: Module {
 
         }
 
-        Function("playPCMData") { (pcmData: Data) in
-            self.audioEngine?.playPCMData(pcmData)
+        Function("playPCMData") { (data: Data, sampleRate: Double) -> Void in
+            print("iOS playPCMData called with sampleRate: \(sampleRate)")
+            // AudioEngine will use the sampleRate it was initialized with.
+            // The sampleRate param here is to match the JS API.
+            self.audioEngine?.playPCMData(data)
         }
 
         Function("bypassVoiceProcessing") { (bypass: Bool) in

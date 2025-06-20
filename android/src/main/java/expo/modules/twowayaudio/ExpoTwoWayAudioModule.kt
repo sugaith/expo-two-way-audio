@@ -2,6 +2,7 @@ package expo.modules.twowayaudio
 
 import AudioEngine
 import androidx.core.os.bundleOf
+import android.util.Log
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.Promise
@@ -19,13 +20,13 @@ class ExpoTwoWayAudioModule : Module() {
 
     override fun definition() = ModuleDefinition {
         Name("ExpoTwoWayAudio")
-        AsyncFunction("initialize") { promise: Promise ->
+        AsyncFunction("initialize") { sampleRate: Int, promise: Promise ->
             try {
                 if (audioEngine != null) {
                     promise.resolve(true)
                     return@AsyncFunction
                 }
-                audioEngine = appContext.reactContext?.let { AudioEngine(it) }
+                audioEngine = appContext.reactContext?.let { AudioEngine(it, sampleRate) }
                 setupCallbacks()
                 promise.resolve(true)
             } catch (e: Exception) {
@@ -58,7 +59,12 @@ class ExpoTwoWayAudioModule : Module() {
              ))
          }
 
-         Function("playPCMData") { data: kotlin.ByteArray ->
+         Function("playPCMData") { data: ByteArray, sampleRate: Int ->
+             // TODO: Decide how to use this sampleRate.
+             // For now, we assume AudioEngine was initialized with the correct sample rate.
+             // If AudioEngine needs to be reconfigured, that's a more complex change.
+             // Log the received sample rate for now.
+             Log.d("ExpoTwoWayAudioModule", "playPCMData called with sampleRate: $sampleRate")
              audioEngine?.playPCMData(data)
          }
 

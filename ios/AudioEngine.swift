@@ -10,6 +10,7 @@ class AudioEngine {
     
     public private(set) var voiceIOFormat: AVAudioFormat
     public private(set) var isRecording = false
+    private var currentSampleRate: Double
     
     public var onMicDataCallback: ((Data) -> Void)?
     public var onInputVolumeCallback: ((Float) -> Void)?
@@ -32,10 +33,11 @@ class AudioEngine {
         case audioFormatError
     }
     
-    init() throws {
+    init(sampleRate: Double) throws {
+        self.currentSampleRate = sampleRate
         avAudioEngine.attach(speechPlayer)
         
-        guard let format = AVAudioFormat(standardFormatWithSampleRate: 16000, channels: 1) else {
+        guard let format = AVAudioFormat(standardFormatWithSampleRate: self.currentSampleRate, channels: 1) else {
             throw AudioEngineError.audioFormatError
         }
         voiceIOFormat = format
@@ -212,7 +214,7 @@ class AudioEngine {
         let frameCount = UInt32(data.count) / 2 // 16-bit input = 2 bytes per frame
         
         let format = AVAudioFormat(commonFormat: .pcmFormatFloat32,
-                                   sampleRate: 16000,
+                                   sampleRate: self.currentSampleRate,
                                    channels: 1,
                                    interleaved: false)!
         
