@@ -182,7 +182,7 @@ class AudioEngine {
         }
     }
     
-    func playPCMData(_ pcmData: Data) {
+    func playPCMData(_ pcmData: Data, sampleRate: Int) {
         // Looks like we don't get a proper AEC for the very first chunks of audio that we play.
         // To work around this, we will discard microphone input for the first few milliseconds.
         // This will give the AEC time to adapt to the playback audio.
@@ -196,7 +196,7 @@ class AudioEngine {
             }
         }
         
-        guard let buffer = createBuffer(from: pcmData) else {
+        guard let buffer = createBuffer(from: pcmData, sampleRate: sampleRate) else {
             print("Failed to create audio buffer")
             return
         }
@@ -208,11 +208,11 @@ class AudioEngine {
     }
 
     
-    private func createBuffer(from data: Data) -> AVAudioPCMBuffer? {
+    private func createBuffer(from data: Data, sampleRate: Int) -> AVAudioPCMBuffer? {
         let frameCount = UInt32(data.count) / 2 // 16-bit input = 2 bytes per frame
         
         let format = AVAudioFormat(commonFormat: .pcmFormatFloat32,
-                                   sampleRate: 16000,
+                                   sampleRate: Double(sampleRate),
                                    channels: 1,
                                    interleaved: false)!
         

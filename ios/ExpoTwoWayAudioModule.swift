@@ -106,8 +106,8 @@ public class ExpoTwoWayAudioModule: Module {
 
         }
 
-        Function("playPCMData") { (pcmData: Data) in
-            self.audioEngine?.playPCMData(pcmData)
+        Function("playPCMData") { (pcmData: Data, sampleRate: Int?) in
+            self.audioEngine?.playPCMData(pcmData, sampleRate: sampleRate ?? 16000)
         }
 
         Function("bypassVoiceProcessing") { (bypass: Bool) in

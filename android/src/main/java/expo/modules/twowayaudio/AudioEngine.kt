@@ -22,6 +22,7 @@ import kotlin.math.pow
 
 class AudioEngine (context: Context) {
     private val SAMPLE_RATE = 16000
+    private var playbackSampleRate = 16000
     private val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT
     private val CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
 
@@ -35,6 +36,36 @@ class AudioEngine (context: Context) {
     private val executorServiceMicrophone = Executors.newFixedThreadPool(1)
     private val executorServicePlayback = Executors.newFixedThreadPool(1)
     private var speakerDevice: AudioDeviceInfo? = null
+
+    private fun ensureAudioTrack(sampleRate: Int) {
+        if (!this::audioTrack.isInitialized || playbackSampleRate != sampleRate) {
+            if (this::audioTrack.isInitialized) {
+                audioTrack.release()
+            }
+            playbackSampleRate = sampleRate
+            val bufferSize = AudioTrack.getMinBufferSize(
+                playbackSampleRate,
+                AudioFormat.CHANNEL_OUT_MONO,
+                AUDIO_FORMAT
+            )
+            audioTrack = AudioTrack(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build(),
+                AudioFormat.Builder()
+                    .setEncoding(AUDIO_FORMAT)
+                    .setSampleRate(playbackSampleRate)
+                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                    .build(),
+                bufferSize,
+                AudioTrack.MODE_STREAM,
+                audioManager.generateAudioSessionId()
+            ).apply {
+                play()
+            }
+        }
+    }
 
     var isRecording = false
     private var isRecordingBeforePause = false
@@ -74,7 +105,7 @@ class AudioEngine (context: Context) {
         }, null)
 
         val bufferSize = AudioTrack.getMinBufferSize(
-            SAMPLE_RATE,
+            playbackSampleRate,
             AudioFormat.CHANNEL_OUT_MONO,
             AUDIO_FORMAT
         )
@@ -86,7 +117,7 @@ class AudioEngine (context: Context) {
                 .build(),
             AudioFormat.Builder()
                 .setEncoding(AUDIO_FORMAT)
-                .setSampleRate(SAMPLE_RATE)
+                .setSampleRate(playbackSampleRate)
                 .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
                 .build(),
             bufferSize,
@@ -251,7 +282,8 @@ class AudioEngine (context: Context) {
         return isRecording
     }
 
-    fun playPCMData(data: ByteArray) {
+    fun playPCMData(data: ByteArray, sampleRate: Int) {
+        ensureAudioTrack(sampleRate)
         audioSampleQueue.add(data)
         if (!isPlaying) {
             playAudioFromSampleQueue()
@@ -314,6 +346,7 @@ class AudioEngine (context: Context) {
     fun tearDown() {
         stopRecording()
         audioTrack.stop()
+        audioTrack.release()
         audioManager.mode = AudioManager.MODE_NORMAL
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             audioManager.clearCommunicationDevice()

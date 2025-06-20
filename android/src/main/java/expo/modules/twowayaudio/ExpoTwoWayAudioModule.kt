@@ -58,8 +58,8 @@ class ExpoTwoWayAudioModule : Module() {
              ))
          }
 
-         Function("playPCMData") { data: kotlin.ByteArray ->
-             audioEngine?.playPCMData(data)
+         Function("playPCMData") { data: kotlin.ByteArray, sampleRate: Int? ->
+             audioEngine?.playPCMData(data, sampleRate ?: 16000)
          }
 
          Function("bypassVoiceProcessing") { bypass: Boolean ->
