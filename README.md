@@ -6,7 +6,7 @@ The aim of the module is to facilitate creating real-time conversational apps. T
 
 - Request audio recording permissions
 - Get clean (applying Acoustic Echo Cancelling) microphone samples in PCM format (1 channel 16 bit at 16kHz)
-- Play audio samples in PCM format (1 channel 16 bit at 16kHz). Playback happens through main speaker unless external audio sources are connected.
+- Play audio samples in PCM format (1 channel 16 bit). Supports playback at **16kHz** or **24kHz**. Playback happens through main speaker unless external audio sources are connected.
 - Provide volume level both for the input and output samples. Float between 0 and 1.
 - [iOS only] Get microphone mode and prompt user to select a microphone mode.
 
@@ -57,8 +57,10 @@ Please check out our [examples/](./examples) to get full sample code.
     const audioChunk = "SOME PCM DATA BASE64 ENCODED HERE"
     const buffer = Buffer.from(audioChunk, "base64");
     const pcmData = new Uint8Array(buffer);
-    playPCMData(pcmData);
-   ```
+    // Optional second argument sets the sample rate (16000 or 24000).
+    // Defaults to 16000 if omitted.
+    playPCMData(pcmData, 16000);
+  ```
 
 1. Get microphone samples
 

@@ -1,12 +1,14 @@
 import { type PermissionResponse, createPermissionHook } from "expo-modules-core";
 import ExpoTwoWayAudioModule from "./ExpoTwoWayAudioModule";
 
+export type SampleRate = 16000 | 24000;
+
 export async function initialize() {
   return await ExpoTwoWayAudioModule.initialize();
 }
 
-export function playPCMData(audioData: Uint8Array) {
-  return ExpoTwoWayAudioModule.playPCMData(audioData);
+export function playPCMData(audioData: Uint8Array, sampleRate: SampleRate = 16000) {
+  return ExpoTwoWayAudioModule.playPCMData(audioData, sampleRate);
 }
 
 export function bypassVoiceProcessing(bypass: boolean) {
